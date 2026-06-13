@@ -53,6 +53,12 @@ function initUsers() {
 
 function initDreams() {
   const dreams = readJSON(DREAMS_FILE);
+  const needsUpdate = dreams.length > 0 && dreams.some(d => d.isPrivate === undefined);
+  if (needsUpdate) {
+    const updated = dreams.map(d => ({ ...d, isPrivate: false }));
+    writeJSON(DREAMS_FILE, updated);
+    return;
+  }
   if (dreams.length === 0) {
     const sampleDreams = [
       {
@@ -60,42 +66,48 @@ function initDreams() {
         userId: 1,
         content: '在一片紫色的云海中漂浮，远处有一座发光的水晶城堡，城堡的塔尖直插云霄。',
         lucidity: 5,
-        date: '2026-06-01'
+        date: '2026-06-01',
+        isPrivate: false
       },
       {
         id: 2,
         userId: 1,
         content: '梦见自己变成了一只鸟，在城市上空飞翔，下面的人群像蚂蚁一样小。',
         lucidity: 3,
-        date: '2026-06-05'
+        date: '2026-06-05',
+        isPrivate: false
       },
       {
         id: 3,
         userId: 1,
         content: '在海底漫步，周围是五颜六色的珊瑚和会发光的鱼，我可以在水中呼吸。',
         lucidity: 4,
-        date: '2026-06-10'
+        date: '2026-06-10',
+        isPrivate: true
       },
       {
         id: 4,
         userId: 1,
         content: '梦见了很久没见的老朋友，我们在一片向日葵花田里聊天。',
         lucidity: 2,
-        date: '2026-05-20'
+        date: '2026-05-20',
+        isPrivate: false
       },
       {
         id: 5,
         userId: 1,
         content: '在太空里行走，地球就在脚下，星星近得伸手就能摸到。',
         lucidity: 5,
-        date: '2026-05-15'
+        date: '2026-05-15',
+        isPrivate: false
       },
       {
         id: 6,
         userId: 1,
         content: '梦见自己在图书馆里，每本书打开都会飞出不同颜色的蝴蝶。',
         lucidity: 4,
-        date: '2026-06-12'
+        date: '2026-06-12',
+        isPrivate: false
       }
     ];
     writeJSON(DREAMS_FILE, sampleDreams);
@@ -141,7 +153,7 @@ app.get('/api/dreams', authenticateToken, (req, res) => {
 });
 
 app.post('/api/dreams', authenticateToken, (req, res) => {
-  const { content, lucidity, date } = req.body;
+  const { content, lucidity, date, isPrivate } = req.body;
   if (!content || !lucidity || !date) {
     return res.status(400).json({ error: '内容、清醒度和日期必填' });
   }
@@ -152,12 +164,50 @@ app.post('/api/dreams', authenticateToken, (req, res) => {
     userId: req.user.id,
     content,
     lucidity: parseInt(lucidity),
-    date
+    date,
+    isPrivate: isPrivate ? true : false
   };
 
   dreams.push(newDream);
   writeJSON(DREAMS_FILE, dreams);
   res.status(201).json(newDream);
+});
+
+app.put('/api/dreams/:id', authenticateToken, (req, res) => {
+  const { id } = req.params;
+  const { content, lucidity, date, isPrivate } = req.body;
+  const dreams = readJSON(DREAMS_FILE);
+  const dreamIndex = dreams.findIndex(d => d.id === parseInt(id) && d.userId === req.user.id);
+
+  if (dreamIndex === -1) {
+    return res.status(404).json({ error: '梦境不存在' });
+  }
+
+  const dream = dreams[dreamIndex];
+  if (content !== undefined) dream.content = content;
+  if (lucidity !== undefined) dream.lucidity = parseInt(lucidity);
+  if (date !== undefined) dream.date = date;
+  if (isPrivate !== undefined) dream.isPrivate = isPrivate ? true : false;
+
+  dreams[dreamIndex] = dream;
+  writeJSON(DREAMS_FILE, dreams);
+  res.json(dream);
+});
+
+app.post('/api/verify-password', authenticateToken, (req, res) => {
+  const { password } = req.body;
+  if (!password) {
+    return res.status(400).json({ error: '请输入密码' });
+  }
+
+  const users = readJSON(USERS_FILE);
+  const user = users.find(u => u.id === req.user.id);
+
+  if (!user || !bcrypt.compareSync(password, user.password)) {
+    return res.status(401).json({ error: '密码错误' });
+  }
+
+  res.json({ success: true });
 });
 
 app.get('/api/dreams/random', authenticateToken, (req, res) => {

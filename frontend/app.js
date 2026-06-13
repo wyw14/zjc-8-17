@@ -16,6 +16,20 @@ createApp({
     const randomDream = ref(null);
     const monthlyStats = ref({ count: 0, avgLucidity: 0 });
 
+    const showPrivateDreams = ref(false);
+    const passwordModalVisible = ref(false);
+    const verifyPassword = ref('');
+    const verifyLoading = ref(false);
+    const verifyError = ref('');
+    const passwordInput = ref(null);
+
+    const filteredDreams = computed(() => {
+      if (showPrivateDreams.value) {
+        return dreams.value;
+      }
+      return dreams.value.filter(d => !d.isPrivate);
+    });
+
     const now = new Date();
     const selectedYear = ref(now.getFullYear());
     const selectedMonth = ref(now.getMonth() + 1);
@@ -31,7 +45,8 @@ createApp({
     const newDream = ref({
       content: '',
       lucidity: 3,
-      date: new Date().toISOString().split('T')[0]
+      date: new Date().toISOString().split('T')[0],
+      isPrivate: false
     });
 
     const isPlaying = ref(false);
@@ -179,12 +194,75 @@ createApp({
         newDream.value = {
           content: '',
           lucidity: 3,
-          date: new Date().toISOString().split('T')[0]
+          date: new Date().toISOString().split('T')[0],
+          isPrivate: false
         };
 
         loadData();
       } catch (e) {
         alert(e.message);
+      }
+    }
+
+    async function toggleDreamPrivacy(dream) {
+      const newIsPrivate = !dream.isPrivate;
+      try {
+        await apiRequest(`/dreams/${dream.id}`, {
+          method: 'PUT',
+          body: JSON.stringify({ isPrivate: newIsPrivate })
+        });
+        dream.isPrivate = newIsPrivate;
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+
+    function onToggleShowPrivate() {
+      if (showPrivateDreams.value) {
+        showPrivateDreams.value = false;
+      } else {
+        openPasswordModal();
+      }
+    }
+
+    function openPasswordModal() {
+      passwordModalVisible.value = true;
+      verifyPassword.value = '';
+      verifyError.value = '';
+      verifyLoading.value = false;
+      setTimeout(() => {
+        if (passwordInput.value) {
+          passwordInput.value.focus();
+        }
+      }, 100);
+    }
+
+    function closePasswordModal() {
+      passwordModalVisible.value = false;
+      verifyPassword.value = '';
+      verifyError.value = '';
+    }
+
+    async function submitVerifyPassword() {
+      if (!verifyPassword.value) {
+        verifyError.value = '请输入密码';
+        return;
+      }
+
+      verifyLoading.value = true;
+      verifyError.value = '';
+
+      try {
+        await apiRequest('/verify-password', {
+          method: 'POST',
+          body: JSON.stringify({ password: verifyPassword.value })
+        });
+        showPrivateDreams.value = true;
+        closePasswordModal();
+      } catch (e) {
+        verifyError.value = e.message;
+      } finally {
+        verifyLoading.value = false;
       }
     }
 
@@ -266,11 +344,23 @@ createApp({
       handleLogin,
       handleLogout,
       dreams,
+      filteredDreams,
       randomDream,
       monthlyStats,
       newDream,
       fetchRandomDream,
       addDream,
+      toggleDreamPrivacy,
+      showPrivateDreams,
+      onToggleShowPrivate,
+      passwordModalVisible,
+      verifyPassword,
+      verifyLoading,
+      verifyError,
+      passwordInput,
+      openPasswordModal,
+      closePasswordModal,
+      submitVerifyPassword,
       isPlaying,
       toggleWhiteNoise,
       selectedYear,

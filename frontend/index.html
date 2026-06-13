@@ -109,20 +109,41 @@
               <label>梦境内容</label>
               <textarea v-model="newDream.content" rows="5" placeholder="描述你的梦境..."></textarea>
             </div>
+            <div class="form-group">
+              <label class="checkbox-label">
+                <input type="checkbox" v-model="newDream.isPrivate">
+                <span>设为私密 🔒</span>
+              </label>
+            </div>
             <button class="btn-primary btn-large" @click="addDream">保存梦境</button>
           </div>
         </div>
 
         <div class="card">
-          <h2>📚 梦境列表</h2>
-          <div v-if="dreams.length === 0" class="empty-dream">还没有记录梦境</div>
+          <div class="card-header">
+            <h2>📚 梦境列表</h2>
+            <button class="btn-icon btn-private-toggle" @click="onToggleShowPrivate" :class="{ active: showPrivateDreams }">
+              {{ showPrivateDreams ? '🔓 隐藏私密' : '🔒 显示私密' }}
+            </button>
+          </div>
+          <div v-if="filteredDreams.length === 0" class="empty-dream">
+            {{ showPrivateDreams ? '还没有记录梦境' : '暂无公开梦境，点击"显示私密"查看全部' }}
+          </div>
           <div v-else class="dream-list">
-            <div v-for="dream in dreams" :key="dream.id" class="dream-item">
+            <div v-for="dream in filteredDreams" :key="dream.id" class="dream-item" :class="{ 'dream-private': dream.isPrivate }">
               <div class="dream-header">
-                <span class="dream-date">{{ dream.date }}</span>
-                <span class="dream-lucidity">
-                  <span v-for="n in 5" :key="n" class="star">{{ n <= dream.lucidity ? '★' : '☆' }}</span>
-                </span>
+                <div class="dream-header-left">
+                  <span class="dream-date">{{ dream.date }}</span>
+                  <span v-if="dream.isPrivate" class="private-badge">🔒 私密</span>
+                </div>
+                <div class="dream-header-right">
+                  <span class="dream-lucidity">
+                    <span v-for="n in 5" :key="n" class="star">{{ n <= dream.lucidity ? '★' : '☆' }}</span>
+                  </span>
+                  <button class="btn-icon btn-small" @click="toggleDreamPrivacy(dream)" :title="dream.isPrivate ? '设为公开' : '设为私密'">
+                    {{ dream.isPrivate ? '🔓' : '🔒' }}
+                  </button>
+                </div>
               </div>
               <div class="dream-text">{{ dream.content }}</div>
             </div>
@@ -131,6 +152,24 @@
       </main>
     </div>
   </div>
+
+    <div v-if="passwordModalVisible" class="modal-overlay" @click.self="closePasswordModal">
+      <div class="modal-box">
+        <h3 class="modal-title">🔐 验证密码</h3>
+        <p class="modal-desc">请输入登录密码以查看私密梦境</p>
+        <div class="form-group">
+          <label>密码</label>
+          <input v-model="verifyPassword" type="password" placeholder="请输入密码" @keyup.enter="submitVerifyPassword" ref="passwordInput">
+        </div>
+        <p v-if="verifyError" class="error-text">{{ verifyError }}</p>
+        <div class="modal-actions">
+          <button class="btn-outline" @click="closePasswordModal">取消</button>
+          <button class="btn-primary" @click="submitVerifyPassword" :disabled="verifyLoading">
+            {{ verifyLoading ? '验证中...' : '确认' }}
+          </button>
+        </div>
+      </div>
+    </div>
 
   <script src="app.js"></script>
 </body>

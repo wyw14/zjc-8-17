@@ -288,10 +288,125 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.card-header h2 {
+  font-size: 18px;
+  margin: 0;
+  color: #e2e8f0;
+}
+
 .card h2 {
   font-size: 18px;
   margin-bottom: 20px;
   color: #e2e8f0;
+}
+
+.btn-small {
+  padding: 4px 8px;
+  font-size: 14px;
+  min-width: 30px;
+}
+
+.btn-private-toggle {
+  white-space: nowrap;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  margin-bottom: 0;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: auto;
+  cursor: pointer;
+  accent-color: #a78bfa;
+}
+
+.checkbox-label span {
+  color: #cbd5e1;
+  font-size: 14px;
+}
+
+.dream-private {
+  background: rgba(167, 139, 250, 0.08);
+  border: 1px solid rgba(167, 139, 250, 0.2);
+}
+
+.dream-header-left,
+.dream-header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.private-badge {
+  font-size: 12px;
+  color: #a78bfa;
+  background: rgba(167, 139, 250, 0.15);
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-box {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border-radius: 16px;
+  padding: 30px;
+  width: 100%;
+  max-width: 400px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.modal-title {
+  font-size: 20px;
+  text-align: center;
+  margin-bottom: 8px;
+  background: linear-gradient(90deg, #a78bfa, #f472b6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.modal-desc {
+  text-align: center;
+  color: #94a3b8;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.modal-actions .btn-outline,
+.modal-actions .btn-primary {
+  flex: 1;
 }
 
 .random-dream {
